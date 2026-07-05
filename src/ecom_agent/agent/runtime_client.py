@@ -44,7 +44,7 @@ class EcomRuntimeClient:
     ) -> None:
         if rpc_timeout_seconds <= 0:
             raise ValueError("rpc_timeout_seconds must be greater than zero")
-        self._stub = EcomRuntimeStub(channel)  # type: ignore[no-untyped-call]
+        self._stub = EcomRuntimeStub(channel)
         self._rpc_timeout_seconds = rpc_timeout_seconds
 
     async def read(
@@ -55,7 +55,7 @@ class EcomRuntimeClient:
         start_line: int = 0,
         end_line: int = 0,
     ) -> ReadResponse:
-        return await self._stub.Read(  # type: ignore[no-any-return]
+        return await self._stub.Read(
             ReadRequest(
                 path=path,
                 number=number,
@@ -66,12 +66,12 @@ class EcomRuntimeClient:
         )
 
     async def list_dir(self, path: str = "") -> ListResponse:
-        return await self._stub.List(  # type: ignore[no-any-return]
+        return await self._stub.List(
             ListRequest(path=path), timeout=self._rpc_timeout_seconds
         )
 
     async def tree(self, root: str = "", level: int = 0) -> TreeResponse:
-        return await self._stub.Tree(  # type: ignore[no-any-return]
+        return await self._stub.Tree(
             TreeRequest(root=root, level=level),
             timeout=self._rpc_timeout_seconds,
         )
@@ -84,7 +84,7 @@ class EcomRuntimeClient:
         kind: NodeKind = NODE_KIND_UNSPECIFIED,
         limit: int = 0,
     ) -> FindResponse:
-        return await self._stub.Find(  # type: ignore[no-any-return]
+        return await self._stub.Find(
             FindRequest(root=root, name=name, kind=kind, limit=limit),
             timeout=self._rpc_timeout_seconds,
         )
@@ -92,20 +92,20 @@ class EcomRuntimeClient:
     async def search(
         self, pattern: str, *, root: str = "", limit: int = 0
     ) -> SearchResponse:
-        return await self._stub.Search(  # type: ignore[no-any-return]
+        return await self._stub.Search(
             SearchRequest(root=root, pattern=pattern, limit=limit),
             timeout=self._rpc_timeout_seconds,
         )
 
     async def stat(self, path: str) -> StatResponse:
-        return await self._stub.Stat(  # type: ignore[no-any-return]
+        return await self._stub.Stat(
             StatRequest(path=path), timeout=self._rpc_timeout_seconds
         )
 
     async def exec(
         self, path: str, *, args: list[str] | None = None, stdin: str = ""
     ) -> ExecResponse:
-        return await self._stub.Exec(  # type: ignore[no-any-return]
+        return await self._stub.Exec(
             ExecRequest(path=path, args=args or [], stdin=stdin),
             timeout=self._rpc_timeout_seconds,
         )
@@ -113,12 +113,12 @@ class EcomRuntimeClient:
     async def write(
         self, path: str, content: str, *, if_match_sha256: str = ""
     ) -> WriteResponse:
-        return await self._stub.Write(  # type: ignore[no-any-return]
+        return await self._stub.Write(
             WriteRequest(path=path, content=content, if_match_sha256=if_match_sha256),
             timeout=self._rpc_timeout_seconds,
         )
 
     async def delete(self, path: str) -> DeleteResponse:
-        return await self._stub.Delete(  # type: ignore[no-any-return]
+        return await self._stub.Delete(
             DeleteRequest(path=path), timeout=self._rpc_timeout_seconds
         )
