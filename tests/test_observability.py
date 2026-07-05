@@ -55,6 +55,7 @@ def test_off_mode_does_not_construct_langfuse() -> None:
 def test_build_observability_uses_configured_endpoint() -> None:
     secret_key = "sk-" + "test"
     settings = Settings(
+        default_model="test-model",
         observability_mode="metadata",
         langfuse_public_key=SecretStr("pk-test"),
         langfuse_secret_key=SecretStr(secret_key),

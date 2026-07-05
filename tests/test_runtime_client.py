@@ -49,7 +49,7 @@ async def test_runtime_client_sets_timeout_on_every_rpc() -> None:
         setattr(stub, method, AsyncMock(return_value=response))
 
     with patch(
-        "ecom_agent.agent.runtime_client.ecom_pb2_grpc.EcomRuntimeStub",
+        "ecom_agent.agent.runtime_client.EcomRuntimeStub",
         return_value=stub,
     ):
         client = EcomRuntimeClient(MagicMock(), rpc_timeout_seconds=2.5)
