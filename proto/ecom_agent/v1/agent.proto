@@ -1,0 +1,90 @@
+syntax = "proto3";
+
+package ecom_agent.v1;
+
+option go_package = "ecom_agent/v1;ecom_agentv1";
+
+// AgentService runs the agent workflow against a Playground and streams the
+// working process back to the caller.
+service AgentService {
+  rpc Run(RunRequest) returns (stream RunEvent);
+}
+
+message RunRequest {
+  string prompt = 1;
+  string playground_id = 2;
+  string playground_url = 3;
+  optional string model = 4;
+  map<string, string> config = 5;
+}
+
+enum Outcome {
+  OUTCOME_UNSPECIFIED = 0;
+  OUTCOME_OK = 1;
+  OUTCOME_DENIED_SECURITY = 2;
+  OUTCOME_NONE_CLARIFICATION = 3;
+  OUTCOME_NONE_UNSUPPORTED = 4;
+  OUTCOME_ERR_INTERNAL = 5;
+}
+
+message ToolTrace {
+  string tool = 1;
+  string request_json = 2;
+  string response_json = 3;
+}
+
+message StageStarted {
+  string stage = 1;
+}
+
+message Reasoning {
+  string stage = 1;
+  string text = 2;
+}
+
+message ToolCall {
+  string stage = 1;
+  string tool = 2;
+  string request_json = 3;
+}
+
+message ToolResult {
+  string stage = 1;
+  string tool = 2;
+  string response_json = 3;
+}
+
+message SchemaEmitted {
+  string stage = 1;
+  string schema_name = 2;
+  string schema_json = 3;
+}
+
+message Log {
+  string message = 1;
+}
+
+message Error {
+  string message = 1;
+}
+
+message FinalAnswer {
+  string message = 1;
+  Outcome outcome = 2;
+  repeated string refs = 3;
+  repeated string safety_flags = 4;
+  repeated ToolTrace tool_trace = 5;
+}
+
+message RunEvent {
+  oneof event {
+    StageStarted stage_started = 1;
+    Reasoning reasoning = 2;
+    ToolCall tool_call = 3;
+    ToolResult tool_result = 4;
+    SchemaEmitted schema_emitted = 5;
+    Log log = 6;
+    Error error = 7;
+    FinalAnswer final_answer = 8;
+  }
+}

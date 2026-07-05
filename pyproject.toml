@@ -1,0 +1,70 @@
+[project]
+name = "ecom-agent"
+version = "0.1.0"
+description = "gRPC agent service driving a staged Schema-Guided-Reasoning workflow against a Playground's EcomEnv tool surface"
+readme = "README.md"
+authors = [
+    { name = "MikBark", email = "mikhail.barkov.2002@gmail.com" }
+]
+requires-python = ">=3.14"
+dependencies = [
+    "grpcio>=1.81.1",
+    "grpcio-health-checking>=1.81.1",
+    "openai>=2.15.0",
+    "protobuf>=6.33.6",
+    "pydantic>=2.13.4",
+    "pydantic-settings>=2.14.2",
+]
+
+[project.scripts]
+ecom-agent = "ecom_agent:main"
+
+[build-system]
+requires = ["uv_build>=0.10.2,<0.11.0"]
+build-backend = "uv_build"
+
+[dependency-groups]
+dev = [
+    "grpcio-tools>=1.81.1",
+    "mypy>=2.1.0",
+    "pytest>=9.1.1",
+    "pytest-asyncio>=1.4.0",
+    "pytest-cov>=7.1.0",
+    "ruff>=0.15.20",
+    "types-grpcio>=1.0.0.20260614",
+    "types-protobuf>=7.34.1.20260518",
+]
+
+[tool.ruff]
+target-version = "py314"
+line-length = 100
+src = ["src", "tests"]
+extend-exclude = ["src/ecom_agent/v1", ".venv"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "SIM"]
+
+[tool.mypy]
+python_version = "3.14"
+strict = true
+exclude = ["src/ecom_agent/v1/"]
+
+[[tool.mypy.overrides]]
+module = "ecom_agent.v1.*"
+ignore_errors = true
+
+[[tool.mypy.overrides]]
+module = "grpc_health.*"
+ignore_missing_imports = true
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]
+
+[tool.coverage.run]
+source = ["src/ecom_agent"]
+omit = ["src/ecom_agent/v1/*"]
+
+[tool.coverage.report]
+fail_under = 75
+show_missing = true
