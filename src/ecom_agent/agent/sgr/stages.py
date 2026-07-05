@@ -1,28 +1,28 @@
-from typing import Protocol
+"""Step identifiers and the workflow state threaded across the SGR loop."""
 
-from pydantic import BaseModel
+from dataclasses import dataclass, field
+from typing import Literal
 
-STAGE_ORDER: tuple[str, ...] = (
-    "bootstrap_classify",
-    "policy_investigation",
-    "security_check",
-    "evidence",
-    "trust_authorize",
-    "mutation",
-    "refs_audit",
-    "finalize",
-)
+from ecom_agent.agent.llm import Message
+from ecom_agent.v1 import agent_pb2
+
+Step = Literal["init", "next_step", "collect", "modify", "complete", "audit_refs"]
 
 
-class WorkflowState(BaseModel):
-    decision: str | None = None
-    authorized: bool = False
-    mutation_needed: bool = False
-    augmentations: list[str] = []
+@dataclass
+class WorkflowState:
+    """Internal accumulator threaded across the SGR loop steps.
 
+    This is code-side bookkeeping, not the model's memory: the LLM is stateless per
+    call, and `messages` IS the single growing transcript rendered into every
+    `complete_structured` call. The other fields just carry facts forward so nothing is
+    re-fetched or re-derived.
+    """
 
-class Stage(Protocol):
-    name: str
-
-    async def run(self, state: WorkflowState) -> BaseModel:
-        raise NotImplementedError
+    prompt: str
+    messages: list[Message] = field(default_factory=list)
+    collected_refs: list[str] = field(default_factory=list)
+    tool_trace: list[agent_pb2.ToolTrace] = field(default_factory=list)
+    draft_message: str = ""
+    outcome: str | None = None
+    kept_refs: list[str] = field(default_factory=list)

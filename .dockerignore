@@ -2,7 +2,6 @@
 .git
 .github
 tests
-proto
 runs
 *.pyc
 __pycache__

@@ -10,3 +10,9 @@ dist/
 runs/
 .env
 .env.*
+!.env.example
+
+# generated protobuf stubs (built by `make proto`)
+src/ecom_agent/v1/*_pb2.py
+src/ecom_agent/v1/*_pb2.pyi
+src/ecom_agent/v1/*_pb2_grpc.py

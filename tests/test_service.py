@@ -8,7 +8,9 @@ from ecom_agent.v1 import agent_pb2
 
 
 async def _scripted_events() -> AsyncIterator[agent_pb2.RunEvent]:
-    yield agent_pb2.RunEvent(stage_started=agent_pb2.StageStarted(stage="bootstrap_classify"))
+    yield agent_pb2.RunEvent(
+        stage_started=agent_pb2.StageStarted(stage="bootstrap_classify")
+    )
     yield agent_pb2.RunEvent(
         tool_call=agent_pb2.ToolCall(stage="evidence", tool="read", request_json="{}")
     )
@@ -20,18 +22,23 @@ async def _scripted_events() -> AsyncIterator[agent_pb2.RunEvent]:
 
 
 async def test_run_streams_events_from_agent(fake_env_server: str) -> None:
-    servicer = AgentServicer(llm_client=AsyncMock())
+    servicer = AgentServicer(llm_client=AsyncMock(), runtime_rpc_timeout_seconds=2.5)
     request = agent_pb2.RunRequest(
         prompt="find product X",
-        playground_id="pg-1",
-        playground_url=fake_env_server,
+        harness_url=fake_env_server,
     )
     context = AsyncMock(spec=grpc.aio.ServicerContext)
 
-    with patch("ecom_agent.service.Agent") as agent_cls:
+    with (
+        patch("ecom_agent.service.Agent") as agent_cls,
+        patch("ecom_agent.service.EcomRuntimeClient") as runtime_client_cls,
+    ):
         agent_cls.return_value.run.return_value = _scripted_events()
 
         events = [event async for event in servicer.Run(request, context)]
+
+    runtime_client_cls.assert_called_once()
+    assert runtime_client_cls.call_args.kwargs == {"rpc_timeout_seconds": 2.5}
 
     assert [event.WhichOneof("event") for event in events] == [
         "stage_started",

@@ -11,10 +11,11 @@ service AgentService {
 }
 
 message RunRequest {
+  reserved 2, 4;
+  reserved "playground_id", "model";
+
   string prompt = 1;
-  string playground_id = 2;
-  string playground_url = 3;
-  optional string model = 4;
+  string harness_url = 3;
   map<string, string> config = 5;
 }
 
@@ -69,10 +70,12 @@ message Error {
 }
 
 message FinalAnswer {
+  reserved 4;
+  reserved "safety_flags";
+
   string message = 1;
   Outcome outcome = 2;
   repeated string refs = 3;
-  repeated string safety_flags = 4;
   repeated ToolTrace tool_trace = 5;
 }
 

@@ -1,20 +1,35 @@
 [project]
 name = "ecom-agent"
 version = "0.1.0"
-description = "gRPC agent service driving a staged Schema-Guided-Reasoning workflow against a Playground's EcomEnv tool surface"
+description = "gRPC agent service driving a staged Schema-Guided-Reasoning workflow against a Playground's bitgn EcomRuntime tool surface"
 readme = "README.md"
 authors = [
     { name = "MikBark", email = "mikhail.barkov.2002@gmail.com" }
 ]
-requires-python = ">=3.14"
+requires-python = ">=3.14,<3.15"
 dependencies = [
+    "bitgn-api-grpc-python",
+    "bitgn-api-protocolbuffers-python",
     "grpcio>=1.81.1",
     "grpcio-health-checking>=1.81.1",
+    "langfuse>=4.0.0,<5.0.0",
     "openai>=2.15.0",
     "protobuf>=6.33.6",
     "pydantic>=2.13.4",
     "pydantic-settings>=2.14.2",
 ]
+
+# bitgn EcomRuntime SDK is published as generated Python packages on the Buf
+# Schema Registry. Auth: `buf registry login` (.netrc) locally; a BUF token in
+# CI/Docker. Run `uv lock` where buf.build is reachable to pin exact versions.
+[[tool.uv.index]]
+name = "buf"
+url = "https://buf.build/gen/python"
+explicit = true
+
+[tool.uv.sources]
+bitgn-api-grpc-python = { index = "buf" }
+bitgn-api-protocolbuffers-python = { index = "buf" }
 
 [project.scripts]
 ecom-agent = "ecom_agent:main"
@@ -37,12 +52,44 @@ dev = [
 
 [tool.ruff]
 target-version = "py314"
-line-length = 100
+line-length = 90
 src = ["src", "tests"]
 extend-exclude = ["src/ecom_agent/v1", ".venv"]
 
 [tool.ruff.lint]
-select = ["E", "F", "I", "UP", "B", "SIM"]
+select = [
+    "A", "B", "C4", "C90", "COM", "D", "DTZ", "E", "ERA", "EXE", "F", "FA", "FBT",
+    "FLY", "FURB", "G", "I", "ICN", "ISC", "LOG", "N", "PERF", "PIE", "PL", "PT",
+    "PTH", "Q", "RET", "RSE", "RUF", "S", "SIM", "SLF", "SLOT", "T100", "TRY", "UP",
+    "W", "YTT",
+]
+ignore = [
+    "A005",    # allow shadowing stdlib module names
+    "COM812",  # trailing comma, conflicts with ruff format
+    "D102",    # method docstrings not required
+    "D103",    # function docstrings not required
+    "D104",    # package __init__ docstrings not required
+    "D106",    # nested class docstrings not required
+    "D107",    # __init__ docstrings not required
+    "D203", "D212", "D401", "D404", "D405", "D418",
+    "ISC001",  # conflicts with ruff format
+    "ISC003",  # prefer explicit concat
+    "PLR09",   # arg/branch/statement count limits (C90 covers complexity)
+    "PLR2004", # magic value comparisons
+    "PLR6301", # method-could-be-static
+    "TRY003",  # long exception messages
+]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/*.py" = ["S101", "SLF001", "N802", "D100"]
+"src/ecom_agent/service.py" = ["N802"]
+"src/ecom_agent/config.py" = ["S104"]
+
+[tool.ruff.lint.mccabe]
+max-complexity = 6
+
+[tool.ruff.lint.pydocstyle]
+convention = "google"
 
 [tool.mypy]
 python_version = "3.14"
@@ -55,6 +102,10 @@ ignore_errors = true
 
 [[tool.mypy.overrides]]
 module = "grpc_health.*"
+ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+module = "bitgn.*"
 ignore_missing_imports = true
 
 [tool.pytest.ini_options]

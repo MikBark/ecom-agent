@@ -1,0 +1,17 @@
+[project]
+name = "ecom-agent-stubs"
+version = "0.1.0"
+description = "Generated gRPC/protobuf stubs for ecom_agent.v1.AgentService"
+readme = "README.md"
+authors = [
+    { name = "MikBark", email = "mikhail.barkov.2002@gmail.com" }
+]
+requires-python = ">=3.14,<3.15"
+dependencies = [
+    "grpcio>=1.81.1",
+    "protobuf>=6.33.6",
+]
+
+[build-system]
+requires = ["uv_build>=0.10.2,<0.11.0"]
+build-backend = "uv_build"
