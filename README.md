@@ -7,8 +7,7 @@ It runs a staged Schema-Guided-Reasoning workflow against the request's Playgrou
 ## Docker
 
 ```shell
-docker run -d --name ecom-agent --restart unless-stopped -p 50051:50051 \
-  -e OPENAI_API_KEY -e ECOM_AGENT_DEFAULT_MODEL=your-model ecom-agent
+docker run -d --rm --name ecom-agent -p 50051:50051 --env-file .env mikbark/ecom-agent
 ```
 
 ## Langfuse observability

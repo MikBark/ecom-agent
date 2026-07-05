@@ -1,8 +1,18 @@
+from collections import deque
 from collections.abc import AsyncIterator
+from contextlib import asynccontextmanager
 
 import grpc
 import pytest_asyncio
 from bitgn.vm.ecom import ecom_pb2, ecom_pb2_grpc
+from pydantic import BaseModel
+
+from ecom_agent.agent.llm import LLMClient, Message, SchemaT
+from ecom_agent.health import build_health_servicer, mark_serving, register_health_service
+from ecom_agent.observability import Observability
+from ecom_agent.server import AGENT_SERVICE_FULL_NAME
+from ecom_agent.service import AgentServicer
+from ecom_agent.v1 import agent_pb2_grpc
 
 
 class FakeEcomRuntimeServicer(ecom_pb2_grpc.EcomRuntimeServicer):
@@ -91,6 +101,44 @@ async def fake_env_server() -> AsyncIterator[str]:
     ecom_pb2_grpc.add_EcomRuntimeServicer_to_server(  # type: ignore[no-untyped-call]
         FakeEcomRuntimeServicer(), server
     )
+    port = server.add_insecure_port("127.0.0.1:0")
+    await server.start()
+    try:
+        yield f"127.0.0.1:{port}"
+    finally:
+        await server.stop(None)
+
+
+class FakeLLMClient:
+    """Scripted LLMClient: returns queued responses keyed by requested schema type."""
+
+    def __init__(self, responses: dict[type[BaseModel], deque[BaseModel]]) -> None:
+        self._responses = responses
+        self.calls: list[list[Message]] = []
+
+    async def complete_structured(
+        self, *, system_prompt: str, messages: list[Message], schema: type[SchemaT]
+    ) -> SchemaT:
+        del system_prompt
+        self.calls.append(list(messages))
+        parsed = self._responses[schema].popleft()
+        assert isinstance(parsed, schema)
+        return parsed
+
+
+@asynccontextmanager
+async def start_agent_server(llm_client: LLMClient) -> AsyncIterator[str]:
+    """Assemble a real AgentService + health server, mirroring server.py's wiring."""
+    server = grpc.aio.server()
+    agent_pb2_grpc.add_AgentServiceServicer_to_server(  # type: ignore[no-untyped-call]
+        AgentServicer(llm_client, Observability("off")), server
+    )
+
+    health_servicer = build_health_servicer()
+    register_health_service(server, health_servicer)
+    mark_serving(health_servicer, "")
+    mark_serving(health_servicer, AGENT_SERVICE_FULL_NAME)
+
     port = server.add_insecure_port("127.0.0.1:0")
     await server.start()
     try:

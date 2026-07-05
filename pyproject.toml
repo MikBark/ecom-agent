@@ -10,8 +10,8 @@ requires-python = ">=3.14,<3.15"
 dependencies = [
     "bitgn-api-grpc-python",
     "bitgn-api-protocolbuffers-python",
-    "grpcio>=1.81.1",
-    "grpcio-health-checking>=1.81.1",
+    "grpcio>=1.80.0,<1.81.0",
+    "grpcio-health-checking>=1.80.0,<1.81.0",
     "langfuse>=4.0.0,<5.0.0",
     "openai>=2.15.0",
     "protobuf>=6.33.6",
@@ -40,7 +40,7 @@ build-backend = "uv_build"
 
 [dependency-groups]
 dev = [
-    "grpcio-tools>=1.81.1",
+    "grpcio-tools>=1.80.0,<1.81.0",
     "mypy>=2.1.0",
     "pytest>=9.1.1",
     "pytest-asyncio>=1.4.0",

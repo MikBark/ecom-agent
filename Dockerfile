@@ -29,4 +29,4 @@ ENV ECOM_AGENT_GRPC_HOST=0.0.0.0
 ENV ECOM_AGENT_GRPC_PORT=50051
 EXPOSE 50051
 
-ENTRYPOINT ["uv", "run", "python", "-m", "ecom_agent.server"]
+ENTRYPOINT ["uv", "run", "--no-sync", "python", "-m", "ecom_agent.server"]

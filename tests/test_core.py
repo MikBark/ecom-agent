@@ -3,10 +3,8 @@ from unittest.mock import MagicMock
 
 import grpc
 from bitgn.vm.ecom import ecom_pb2_grpc
-from pydantic import BaseModel
 
 from ecom_agent.agent.core import Agent, _map_outcome
-from ecom_agent.agent.llm import Message, SchemaT
 from ecom_agent.agent.runtime_client import EcomRuntimeClient
 from ecom_agent.agent.sgr.schemas import (
     AuditRefsSchema,
@@ -22,24 +20,7 @@ from ecom_agent.agent.sgr.schemas import (
 )
 from ecom_agent.observability import Observability
 from ecom_agent.v1 import agent_pb2
-from tests.conftest import FakeEcomRuntimeServicer
-
-
-class FakeLLMClient:
-    """Scripted LLMClient: returns queued responses keyed by requested schema type."""
-
-    def __init__(self, responses: dict[type[BaseModel], deque[BaseModel]]) -> None:
-        self._responses = responses
-        self.calls: list[list[Message]] = []
-
-    async def complete_structured(
-        self, *, system_prompt: str, messages: list[Message], schema: type[SchemaT]
-    ) -> SchemaT:
-        del system_prompt
-        self.calls.append(list(messages))
-        parsed = self._responses[schema].popleft()
-        assert isinstance(parsed, schema)
-        return parsed
+from tests.conftest import FakeEcomRuntimeServicer, FakeLLMClient
 
 
 async def _run_events(
