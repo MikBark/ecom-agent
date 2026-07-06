@@ -8,14 +8,16 @@ WORKDIR /app
 # ~/.netrc for the duration of each uv sync that resolves them.
 COPY pyproject.toml uv.lock ./
 RUN --mount=type=secret,id=buf_netrc,target=/root/.netrc \
-    uv sync --frozen --no-dev --no-install-project
+    uv sync --frozen --no-install-project
 
 COPY proto ./proto
 COPY src ./src
 COPY README.md Makefile ./
 
 # Generate the agent gRPC stubs into src (they are gitignored, not vendored).
-RUN uv run --no-project --with grpcio-tools python -m grpc_tools.protoc \
+# Uses the lockfile-pinned grpcio-tools (dev group) so the generated stubs
+# always match the runtime grpcio version installed below.
+RUN uv run python -m grpc_tools.protoc \
     -I proto \
     --python_out=src \
     --grpc_python_out=src \
