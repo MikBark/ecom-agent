@@ -1,6 +1,6 @@
 [project]
 name = "ecom-agent"
-version = "0.1.0"
+version = "0.1.1"
 description = "gRPC agent service driving a staged Schema-Guided-Reasoning workflow against a Playground's bitgn EcomRuntime tool surface"
 readme = "README.md"
 authors = [
